@@ -15,7 +15,15 @@ var server = app.listen(4000, function(){
 app.use(express.static('public'));
 
 // 5. Configurar Socket.IO para trabajar con el servidor Express
-var io = socket(server);
+// -------------------------------------------------------------
+// CORRECCIÓN CLAVE: Agregar la configuración 'cors' para permitir cualquier origen ('*')
+var io = socket(server, {
+    cors: {
+        origin: "*", // Permite la conexión desde cualquier dominio/IP
+        methods: ["GET", "POST"] // Permite los métodos necesarios para el handshake
+    }
+});
+// -------------------------------------------------------------
 
 // 6. Manejo de Eventos de Conexión de Socket.IO
 io.on('connection', function(socket){

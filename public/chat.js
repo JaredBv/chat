@@ -1,6 +1,5 @@
 // 1. Establecer la conexión de Socket.IO con el servidor
-var socket = io.connect('http://localhost:4000'); // Usar el puerto donde corre el servidor
-
+var socket = io.connect('http://18.219.61.54:4000');
 // 2. Obtener referencias a los elementos del DOM (Interfaz de Usuario)
 var persona = document.getElementById('persona'),
     appChat = document.getElementById('app-chat'),
