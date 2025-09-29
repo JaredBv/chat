@@ -1,0 +1,193 @@
+/* Paleta de colores:
+   Fondo principal: #FAF3E0 (Crema muy claro)
+   Fondo de chat/mensajes: #F5E6CC (Crema claro)
+   Color principal (Titulares/detalles): #6B4226 (Marrón Oscuro)
+   Color secundario (Bordes/separadores): #B8860B (Marrón medio/Dorado)
+   Color de entrada/texto: #4A3A2A (Marrón oscuro sutil)
+   Color para elementos resaltados/botones: #A0522D (Terracota/Sienna)
+   Color para "hover" de botones: #8B4513 (Marrón chocolate)
+   Color para sombra de nube: #C5885C (Marrón claro/tostado)
+*/
+
+body {
+    font-family: 'Nunito', sans-serif; /* Se añade sans-serif como fallback */
+    background-color: #FAF3E0; /* Fondo principal en crema claro */
+    margin: 0; /* Asegurar que no haya margen por defecto */
+    padding: 0;
+}
+
+h2 {
+    font-size: 18px;
+    padding: 10px 20px;
+    color: #6B4226; /* Marrón oscuro para títulos */
+    text-align: center;
+    font-family: Tahoma, Geneva, sans-serif;
+}
+
+#panel-bienvenida {
+    padding: 20% 20%;
+    text-align: center; /* Centrar elementos en el panel de bienvenida */
+}
+
+/* Estilos para el input de nombre en el panel de bienvenida */
+#persona {
+    border: 1px solid #B8860B; /* Borde marrón medio */
+    padding: 10px;
+    width: 250px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+/* Estilos para el input de usuario en el chat (si es diferente) */
+#usuario {
+    color: #6B4226;
+    font-weight: bold;
+    font-size: 20px;
+    border: 1px solid #B8860B; /* Borde marrón medio */
+    padding: 10px;
+    width: calc(100% - 130px); /* Ajuste para que el botón "Enviar" quepa al lado */
+    box-sizing: border-box;
+    border-radius: 3px;
+    display: inline-block; /* Permitir que el botón esté al lado */
+    margin-bottom: 10px;
+}
+
+
+#app-chat {
+    /*display: none;*/ /* Se comenta para que se vea en la previsualización */
+    max-width: 600px;
+    margin: 30px auto;
+    border: 1px solid #B8860B;
+    box-shadow: 1px 3px 5px rgba(0,0,0,0.15); /* Sombra sutil */
+    border-radius: 5px; /* Ligeramente más redondeado */
+    background-color: #F5E6CC; /* Fondo de la aplicación en crema */
+    padding: 10px;
+}
+
+#ventana-mensajes {
+    height: 400px;
+    overflow-y: auto; /* Cambiado a overflow-y para scroll vertical */
+    background: #FFFAF0; /* Fondo muy claro para la ventana de mensajes */
+    border: 1px solid #B8860B;
+    padding: 10px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    word-wrap: break-word; /* Romper palabras largas */
+}
+
+#output p {
+    padding: 14px 0px;
+    margin: 0 20px;
+    border-bottom: 1px solid #D2B48C; /* Separador color canela */
+    color: #4A3A2A; /* Color de texto marrón oscuro */
+}
+
+/* Cuando usuario esta escribiendo mensaje */
+#escribiendo-mensaje {
+    color: #A0522D; /* Mensaje de escribiendo en terracota */
+    padding: 14px 0px;
+    margin: 0 20px;
+    font-style: italic;
+}
+
+/* Nombre de usuario */
+#output strong {
+    color: #6B4226; /* Nombre de usuario en marrón oscuro */
+}
+
+/* Estilos de input del segundo segmento de la imagen */
+input[type="text"] { /* Aplica a todos los inputs de tipo texto */
+    box-sizing: border-box;
+    background: #eee; /* Fondo gris claro */
+    border: 0;
+    display: block;
+    width: 100%;
+    /*background: #fff;  Comentado para usar el #eee */
+    border-bottom: 1px solid #B8860B; /* Borde inferior en marrón */
+    font-family: Nunito, sans-serif; /* Usar Nunito */
+    font-size: 16px;
+    padding: 10px 20px; /* Ya definido, se mantiene */
+    border-radius: 3px; /* Añadido para suavizar */
+}
+
+input:focus {
+    outline: 0; /* Eliminar el contorno al enfocar */
+    border-color: #A0522D; /* Borde más oscuro al enfocar */
+}
+
+/* Estilos de botones del segundo segmento de la imagen */
+button {
+    background: #A0522D; /* Terracota para el botón principal */
+    color: #ffffff;
+    font-size: 18px;
+    border: 0;
+    padding: 12px 0;
+    width: 100%;
+    border-radius: 5px; /* Mantener bordes redondeados */
+    cursor: pointer;
+    border: 1px solid transparent; /* Borde transparente por defecto */
+    border-color: #8B4513; /* Borde más oscuro para contraste */
+}
+
+button:hover {
+    background: #8B4513; /* Marrón chocolate al pasar el ratón */
+    color: #FDF5E6; /* Blanco roto para el texto */
+}
+
+/* Nube de chat - base */
+.nube {
+    background-color: #A0522D; /* Terracota para la nube */
+    border-radius: 5px;
+    box-shadow: 0 0px 0px #C5885C; /* Sombra sutil en tono tostado */
+    display: inline-block;
+    padding: 10px 18px;
+    position: relative;
+    vertical-align: top;
+    color: #ffffff;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    margin-bottom: 20px; /* Espacio para que no se pegue */
+}
+
+/* Flecha de la nube - pseudo-elemento before */
+.nube::before {
+    background-color: #A0522D; /* Mismo color de la nube */
+    content: "\00a0"; /* Espacio no rompible */
+    display: block;
+    height: 16px;
+    position: absolute;
+    top: 11px;
+    transform: rotate(29deg) skew(-35deg);
+    -moz-transform: rotate(29deg) skew(-35deg);
+    -ms-transform: rotate(29deg) skew(-35deg);
+    -o-transform: rotate(29deg) skew(-35deg);
+    -webkit-transform: rotate(29deg) skew(-35deg);
+    width: 20px;
+}
+
+/* Clase .box para alinear a la derecha */
+.box {
+    float: right;
+    margin: 5px 45px 5px 20px;
+}
+
+/* Flecha de la nube para .box (cuando está a la derecha) */
+.box::before {
+    box-shadow: -2px 2px 2px 0 rgba(0, 0, 0, .2); /* Sombra para la flecha */
+    left: -9px; /* Posicionamiento a la izquierda */
+}
+
+/* Sobrescribir el input#output y button#enviar para alineación */
+#app-chat input#output[type="text"] {
+    width: calc(100% - 130px); /* Ajuste para que el botón "Enviar" quepa al lado */
+    display: inline-block;
+    vertical-align: top; /* Asegurar alineación con el botón */
+}
+
+#app-chat button#enviar {
+    width: 120px;
+    float: right; /* Flotar a la derecha */
+    margin-left: 10px; /* Espacio entre input y botón */
+    padding: 10px 0; /* Ajustar padding del botón enviar */
+    font-size: 16px; /* Ajustar tamaño de fuente */
+}

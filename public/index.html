@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Práctica de evaluación Socket</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Importación de fuente para consistencia */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Tahoma&display=swap');
+    </style>
+</head>
+<body>
+
+    <div id="panel-bienvenida">
+        <h2>Práctica de evaluación usando Sockets de comunicación - Ing. Alex R.G.</h2>
+        <input id="persona" type="text" placeholder="Ingresa tu nombre">
+        <button id="ingresar" onclick="ingresarAlChat()">Ingresar al chat</button>
+    </div>
+
+    <div id="app-chat">
+        <h2>Practica de evaluación 1er. parcial - Ing. Alex R.G.</h2>
+        <h2 class="nube box">Chat con socket</h2>
+
+        <div id="ventana-mensajes">
+            <p><strong>Usuario A:</strong> ¡Conexión establecida!</p>
+            </div>
+
+        <div id="escribiendo-mensaje"></div>
+
+        <input id="usuario" type="text" placeholder="Tu nombre" value="Usuario de Prueba">
+        <input id="output" type="text" placeholder="Ingresa un mensaje">
+        <button id="enviar">Enviar</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.8.1/socket.io.js"></script>
+    
+    <script src="chat.js"></script>
+
+</body>
+</html>
