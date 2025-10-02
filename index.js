@@ -7,7 +7,7 @@ var app = express();
 
 // 3. Inicializar el servidor y escuchar en el puerto 4000
 var server = app.listen(4000, function(){
-    console.log('Servidor corriendo en http://localhost:4000');
+    console.log('Servidor corriendo en http://18.219.61.54:4000');
 });
 
 // 4. Servir archivos estáticos (HTML, CSS, JS del cliente)
