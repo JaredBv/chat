@@ -1,49 +1,103 @@
-// 1. Importar las librerías necesarias
-var express = require('express');
-var socket = require('socket.io');
+// index.js (Express + Socket.IO) - minimal, persistencia en /public/messages.json
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const fs = require('fs');
+const path = require('path');
 
-// 2. Configuración de la aplicación Express
-var app = express();
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
 
-// 3. Inicializar el servidor y escuchar en el puerto 4000
-var server = app.listen(4000, function(){
-    console.log('Servidor corriendo en http://18.219.61.54:4000');
-});
-
-// 4. Servir archivos estáticos (HTML, CSS, JS del cliente)
-// Asume que la carpeta del cliente (donde está el index.html) se llama 'public'
 app.use(express.static('public'));
 
-// 5. Configurar Socket.IO para trabajar con el servidor Express
-// -------------------------------------------------------------
-// CORRECCIÓN CLAVE: Agregar la configuración 'cors' para permitir cualquier origen ('*')
-var io = socket(server, {
-    cors: {
-        origin: "*", // Permite la conexión desde cualquier dominio/IP
-        methods: ["GET", "POST"] // Permite los métodos necesarios para el handshake
+const DATA_FILE = path.join(__dirname, 'public', 'messages.json');
+let messages = [];
+try { messages = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8') || '[]'); } catch(e){ messages = []; }
+
+function saveMessages(){ fs.writeFileSync(DATA_FILE, JSON.stringify(messages, null, 2)); }
+
+let users = {}; // socketId -> { username }
+
+io.on('connection', socket => {
+  console.log('conectado', socket.id);
+
+  // Enviamos historial (últimos 100)
+  socket.emit('history', messages.slice(-100));
+
+  // Registro de username desde cliente
+  socket.on('register', (username) => {
+    socket.username = username;
+    users[socket.id] = { username };
+    io.emit('users', Object.values(users)); // actualizar lista online
+  });
+
+  // Nuevo mensaje: servidor genera ID y lo guarda
+  socket.on('chat', (data) => {
+    const msg = {
+      id: Date.now().toString(36) + Math.random().toString(36).substr(2,5),
+      usuario: data.usuario,
+      mensaje: data.mensaje,
+      hora: new Date().toISOString(),
+      edited: false,
+      deleted: false,
+      reactions: {}, // emoji -> [usernames]
+      seenBy: [] // lista de usernames que han visto
+    };
+    messages.push(msg);
+    saveMessages();
+    io.emit('chat', msg);
+  });
+
+  // Editar mensaje (servidor valida autor)
+  socket.on('editar-mensaje', (data) => {
+    const msg = messages.find(m => m.id === data.id);
+    if(msg && msg.usuario === data.usuario){
+      msg.mensaje = data.nuevoTexto;
+      msg.edited = true;
+      msg.editedAt = new Date().toISOString();
+      saveMessages();
+      io.emit('editar-mensaje', { id: msg.id, nuevoTexto: msg.mensaje, editedAt: msg.editedAt });
     }
+  });
+
+  // "Borrado" lógico (marcar deleted = true)
+  socket.on('eliminar-mensaje', (data) => {
+    const msg = messages.find(m => m.id === data.id);
+    if(msg && msg.usuario === data.usuario){
+      msg.deleted = true;
+      msg.deletedAt = new Date().toISOString();
+      saveMessages();
+      io.emit('eliminar-mensaje', { id: msg.id });
+    }
+  });
+
+  // Reacciones
+  socket.on('reaccion', ({ id, emoji, usuario }) => {
+    const msg = messages.find(m => m.id === id);
+    if(!msg) return;
+    msg.reactions[emoji] = msg.reactions[emoji] || [];
+    const idx = msg.reactions[emoji].indexOf(usuario);
+    if(idx === -1) msg.reactions[emoji].push(usuario);
+    else msg.reactions[emoji].splice(idx,1);
+    saveMessages();
+    io.emit('reaccion', { id, reactions: msg.reactions });
+  });
+
+  // Read receipt: cliente dice que vio mensaje
+  socket.on('message-seen', ({ id, usuario }) => {
+    const msg = messages.find(m => m.id === id);
+    if(!msg) return;
+    if(!msg.seenBy.includes(usuario)) msg.seenBy.push(usuario);
+    saveMessages();
+    io.emit('message-seen', { id, seenBy: msg.seenBy });
+  });
+
+  socket.on('disconnect', () => {
+    delete users[socket.id];
+    io.emit('users', Object.values(users));
+    console.log('desconectado', socket.id);
+  });
 });
-// -------------------------------------------------------------
 
-// 6. Manejo de Eventos de Conexión de Socket.IO
-io.on('connection', function(socket){
-    // Este código se ejecuta cada vez que un nuevo cliente se conecta
-    console.log('Hay una conexion', socket.id);
-
-    // ********** MANEJO DE EVENTOS DEL CHAT **********
-
-    // A. Evento 'chat': Recepción de un mensaje del cliente
-    socket.on('chat', function(data){
-        console.log(data); // Opcional: registrar el mensaje en el servidor
-        
-        // io.sockets.emit: Envía el mensaje 'chat' a *todos* los clientes conectados
-        io.sockets.emit('chat', data);
-    });
-
-    // B. Evento 'typing': Notificación de que un cliente está escribiendo
-    socket.on('typing', function(data){
-        // socket.broadcast.emit: Envía el evento 'typing' a *todos menos al que lo envió*
-        socket.broadcast.emit('typing', data);
-    });
-
-});
+server.listen(4000, () => console.log('Servidor en http://18.222.255.136:4000'));

@@ -191,3 +191,134 @@ button:hover {
     padding: 10px 0; /* Ajustar padding del botón enviar */
     font-size: 16px; /* Ajustar tamaño de fuente */
 }
+/* Contenedor de mensajes */
+.mensaje {
+    display: flex;
+    margin: 8px 0;
+}
+
+/* Mensajes propios alineados a la derecha */
+.mensaje.mio {
+    justify-content: flex-end;
+}
+
+/* Mensajes de otros alineados a la izquierda */
+.mensaje.otro {
+    justify-content: flex-start;
+}
+
+/* Burbuja de mensaje */
+.burbuja {
+    max-width: 70%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    position: relative;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+/* Burbuja mía */
+.mensaje.mio .burbuja {
+    background-color: #A0522D; /* Terracota */
+    color: #fff;
+    border-bottom-right-radius: 2px;
+    text-align: right;
+}
+
+/* Burbuja de otros */
+.mensaje.otro .burbuja {
+    background-color: #FFF8DC; /* Más claro */
+    color: #4A3A2A;
+    border-bottom-left-radius: 2px;
+    text-align: left;
+}
+
+/* Hora de mensaje */
+.hora {
+    display: block;
+    font-size: 11px;
+    color: #B8860B;
+    margin-top: 4px;
+}
+
+/* Acciones de mensaje (editar / eliminar) */
+.acciones {
+    margin-left: 10px;
+}
+
+.acciones button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 5px;
+    color: #6B4226;
+    transition: transform 0.2s;
+}
+
+.acciones button:hover {
+    transform: scale(1.2);
+    color: #A0522D;
+}
+/* Input inline para editar mensaje */
+.editar-input {
+    font-size: 15px;
+    padding: 4px 8px;
+    border: 1px solid #B8860B;
+    border-radius: 4px;
+    width: 80%;
+    background: #FFF8DC;
+    color: #4A3A2A;
+}
+.editar-input:focus {
+    outline: none;
+    border-color: #A0522D;
+}
+/* Cabecera de cada mensaje */
+.cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Contenedor de los botones */
+.acciones {
+    display: flex;
+    gap: 5px;
+}
+
+/* Botones pequeños y discretos */
+.acciones button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #6B4226;
+}
+
+.acciones button:hover {
+    color: #B8860B;
+}
+
+/* Contenido del mensaje */
+.contenido {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+    margin-top: 2px;
+}
+.contenido .texto {
+    flex-grow: 1;
+}
+.avatar{
+  width:32px; height:32px; border-radius:50%;
+  display:inline-flex; justify-content:center; align-items:center;
+  color:#fff; font-weight:bold; font-size:14px;
+}
+.user-item{ display:flex; gap:8px; align-items:center; padding:4px 0; color:#4A3A2A; }
+.reactions{ margin-top:6px; font-size:13px; }
+.reaction{ margin-right:6px; padding:2px 6px; border-radius:12px; background:rgba(0,0,0,0.05); }
+.texto-eliminado{ color:#888; font-style:italic; }
+.editar-input{ font-size:15px; padding:6px; border:1px solid #B8860B; border-radius:4px; width:80%; }
+.seen-by{ font-size:11px; color:#6B4226; margin-top:6px; }

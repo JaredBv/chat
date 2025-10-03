@@ -1,76 +1,191 @@
-// 1. Establecer la conexión de Socket.IO con el servidor
-var socket = io.connect('http://18.219.61.54:4000');
-// 2. Obtener referencias a los elementos del DOM (Interfaz de Usuario)
+// chat.js (fragmentos clave)
+var socket = io.connect('http://18.222.255.136:4000');
 var persona = document.getElementById('persona'),
     appChat = document.getElementById('app-chat'),
     panelBienvenida = document.getElementById('panel-bienvenida'),
     usuario = document.getElementById('usuario'),
-    mensaje = document.getElementById('output'), // Corregido: 'mensaje' apunta al input 'output' en el HTML
+    mensaje = document.getElementById('output'),
     botonEnviar = document.getElementById('enviar'),
     escribiendoMensaje = document.getElementById('escribiendo-mensaje'),
-    output = document.getElementById('ventana-mensajes'); // Corregido: 'output' apunta al div 'ventana-mensajes' en el HTML
+    output = document.getElementById('ventana-mensajes'),
+    userList = document.getElementById('user-list'); // crea este div en index.html
 
-// 3. Función para ingresar al chat (Invocada por el botón "Ingresar al chat" en el HTML)
-function ingresarAlChat(){
-    // Verificar que se haya ingresado un nombre
-    if(persona.value){
-        // Ocultar el panel de bienvenida
-        panelBienvenida.style.display = "none";
-        // Mostrar la aplicación de chat
-        appChat.style.display = "block";
-        
-        // Asignar el nombre de usuario y hacerlo de solo lectura en el chat
-        var nombreDeUsuario = persona.value;
-        usuario.value = nombreDeUsuario;
-        usuario.readOnly = true;
+// helper: color por nombre
+function colorFromName(name){
+    let hash = 0;
+    for(let i=0;i<name.length;i++) hash = name.charCodeAt(i) + ((hash<<5)-hash);
+    const hue = Math.abs(hash) % 360;
+    return `hsl(${hue} 60% 40%)`;
+}
+
+// render de mensaje (llámala por cada msg)
+function renderMessage(msg){
+    // si borrado
+    const horaLocal = new Date(msg.hora).toLocaleTimeString();
+    const esMio = msg.usuario === usuario.value;
+    if(msg.deleted){
+        output.innerHTML += `
+            <div class="mensaje ${esMio ? 'mio' : 'otro'}" id="${msg.id}">
+                <div class="burbuja">
+                    <div class="cabecera">
+                        <strong>${msg.usuario}</strong>
+                        ${esMio ? `
+                          <span class="acciones">
+                            <button class="editar" style="display:none"></button>
+                            <button class="eliminar">🗑️</button>
+                          </span>` : ''}
+                    </div>
+                    <div class="contenido">
+                        <em class="texto-eliminado">Mensaje eliminado</em>
+                        <span class="hora">${horaLocal}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    // reacciones render simple
+    const reactionsHTML = msg.reactions ? Object.entries(msg.reactions).map(([e,arr]) => `<span class="reaction">${e} ${arr.length}</span>`).join(' ') : '';
+
+    output.innerHTML += `
+      <div class="mensaje ${esMio ? 'mio' : 'otro'}" id="${msg.id}">
+        <div class="burbuja">
+          <div class="cabecera">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="avatar" style="background:${colorFromName(msg.usuario)}">${msg.usuario.charAt(0).toUpperCase()}</div>
+              <strong>${msg.usuario}${msg.edited ? ' <small>(editado)</small>' : ''}</strong>
+            </div>
+            ${esMio ? `<span class="acciones">
+                         <button class="editar"></button>
+                         <button class="eliminar">🗑️</button>
+                       </span>` : ''}
+          </div>
+          <div class="contenido">
+            <span class="texto">${escapeHtml(msg.mensaje)}</span>
+            <span class="hora">${horaLocal}</span>
+          </div>
+          <div class="reactions">${reactionsHTML}</div>
+        </div>
+      </div>
+    `;
+
+    // añadir listeners para mi mensaje
+    if(esMio){
+        let msgDiv = document.getElementById(msg.id);
+        let btnEditar = msgDiv.querySelector('.editar');
+        let btnEliminar = msgDiv.querySelector('.eliminar');
+        let textoSpan = msgDiv.querySelector('.texto');
+
+        btnEditar.addEventListener('click', () => {
+            let input = document.createElement('input');
+            input.type = 'text';
+            input.value = textoSpan.innerText;
+            input.className = 'editar-input';
+            textoSpan.replaceWith(input);
+            input.focus();
+            const guardar = () => {
+                const nuevo = input.value.trim();
+                if(nuevo){
+                    socket.emit('editar-mensaje', { id: msg.id, nuevoTexto: nuevo, usuario: usuario.value });
+                } else {
+                    input.replaceWith(textoSpan);
+                }
+            };
+            input.addEventListener('blur', guardar);
+            input.addEventListener('keypress', (e) => { if(e.key === 'Enter') guardar(); });
+        });
+
+        btnEliminar.addEventListener('click', () => {
+            if(confirm('¿Eliminar mensaje?')){
+                socket.emit('eliminar-mensaje', { id: msg.id, usuario: usuario.value });
+            }
+        });
     }
 }
 
-// 4. Manejo del Evento "Enviar Mensaje" (Click en el botón)
+function escapeHtml(unsafe){
+  return unsafe
+     .replace(/&/g, "&amp;")
+     .replace(/</g, "&lt;")
+     .replace(/>/g, "&gt;");
+}
+
+// al ingresar al chat -> registramos username en server
+function ingresarAlChat(){
+    if(persona.value){
+        panelBienvenida.style.display = "none";
+        appChat.style.display = "block";
+        usuario.value = persona.value;
+        usuario.readOnly = true;
+        // registramos en server para lista online
+        socket.emit('register', persona.value);
+
+        // pedir permisos de notificación
+        if("Notification" in window) Notification.requestPermission();
+    }
+}
+
+// enviar mensaje (sin generar id en cliente)
 botonEnviar.addEventListener('click', function(){
-    // Verificar que el campo de mensaje no esté vacío
-    if(mensaje.value){
-        // Enviar evento 'chat' al servidor con el mensaje y el usuario
-        socket.emit('chat', {
-            mensaje: mensaje.value,
-            usuario: usuario.value
-        });
+    if(mensaje.value.trim()){
+        socket.emit('chat', { mensaje: mensaje.value.trim(), usuario: usuario.value });
+        mensaje.value = '';
     }
-    // Limpiar el campo de mensaje después de enviarlo
-    mensaje.value = '';
 });
 
-// 5. Manejo del Evento "Escribiendo" (Al presionar una tecla en el campo de mensaje)
-mensaje.addEventListener('keyup', function(){
-    // Se asume que la comprobación `if(persona.value)` es un vestigio o error del código original.
-    // La lógica aquí debería ser simplemente emitir el evento 'typing'.
-    
-    // Emitir evento 'typing' al servidor
-    socket.emit('typing', {
-        nombre: usuario.value,
-        texto: mensaje.value // El valor del texto es usado para saber si el campo está vacío (ver línea 36)
-    });
+// recibir historial
+socket.on('history', (msgs) => {
+    output.innerHTML = '';
+    msgs.forEach(renderMessage);
+    output.scrollTop = output.scrollHeight;
 });
 
-// ********** MANEJO DE EVENTOS RECIBIDOS DEL SERVIDOR **********
-
-// 6. Escuchar el Evento 'chat' (Recepción de un mensaje de otro usuario)
-socket.on('chat', function(data){
-    // Limpiar la notificación de "escribiendo"
-    escribiendoMensaje.innerHTML = '';
-    
-    // Agregar el nuevo mensaje al div 'output' (ventana-mensajes)
-    output.innerHTML += '<p><strong>' + data.usuario + ': </strong>' + data.mensaje + '</p>';
-});
-
-// 7. Escuchar el Evento 'typing' (Recepción de la notificación "está escribiendo")
-socket.on('typing', function(data){
-    // Si el campo de texto no está vacío (data.texto.length > 0 o simplemente data.texto)
-    if(data.texto){
-        // Mostrar la notificación de que el usuario está escribiendo
-        escribiendoMensaje.innerHTML = '<p><em>' + data.nombre + '</em> está escribiendo un mensaje...</p>';
-    } else {
-        // Si el campo de texto está vacío (el usuario dejó de escribir o borró el texto), limpiar la notificación
-        escribiendoMensaje.innerHTML = '';
+// recibir nuevo mensaje
+socket.on('chat', (msg) => {
+    renderMessage(msg);
+    // sonido y notificación cuando no es mío
+    if(msg.usuario !== usuario.value){
+        const audio = new Audio('notificacion.mp3');
+        audio.play().catch(()=>{});
+        // browser notification si pestaña no visible
+        if(document.hidden && Notification.permission === 'granted'){
+            new Notification(`${msg.usuario}`, { body: msg.mensaje.slice(0,100) });
+        }
     }
+    output.scrollTop = output.scrollHeight;
+});
+
+// sincronizar edición/eliminación/reacciones/seen
+socket.on('editar-mensaje', (data) => {
+    const el = document.getElementById(data.id);
+    if(el) el.querySelector('.texto').innerText = data.nuevoTexto;
+});
+socket.on('eliminar-mensaje', (data) => {
+    const el = document.getElementById(data.id);
+    if(el) {
+        el.querySelector('.contenido').innerHTML = `<em class="texto-eliminado">Mensaje eliminado</em><span class="hora"></span>`;
+    }
+});
+socket.on('reaccion', ({ id, reactions }) => {
+    const el = document.getElementById(id);
+    if(el) el.querySelector('.reactions').innerHTML = Object.entries(reactions).map(([e,arr])=>`<span class="reaction">${e} ${arr.length}</span>`).join(' ');
+});
+socket.on('message-seen', ({ id, seenBy }) => {
+    const el = document.getElementById(id);
+    if(el) {
+        // opcional: mostrar tick pequeño
+        let seenSpan = el.querySelector('.seen-by');
+        if(!seenSpan){
+           seenSpan = document.createElement('div'); seenSpan.className = 'seen-by';
+           el.querySelector('.burbuja').appendChild(seenSpan);
+        }
+        seenSpan.innerText = `Visto por: ${seenBy.join(', ')}`;
+    }
+});
+
+// lista de usuarios online
+socket.on('users', (list) => {
+    if(!userList) return;
+    userList.innerHTML = list.map(u=>`<div class="user-item"><div class="avatar" style="background:${colorFromName(u.username)}">${u.username.charAt(0).toUpperCase()}</div><span>${u.username}</span></div>`).join('');
 });
