@@ -1,5 +1,8 @@
 // chat.js (fragmentos clave)
-var socket = io.connect('http://18.222.255.136:4000');
+var server = app.listen(4000, '0.0.0.0', function(){
+    console.log('Servidor corriendo en http://18.219.61.54:4000');
+});
+
 var persona = document.getElementById('persona'),
     appChat = document.getElementById('app-chat'),
     panelBienvenida = document.getElementById('panel-bienvenida'),

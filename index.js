@@ -100,4 +100,4 @@ io.on('connection', socket => {
   });
 });
 
-server.listen(4000, () => console.log('Servidor en http://18.222.255.136:4000'));
+server.listen(4000, () => console.log('Servidor en http://18.219.61.54:4000'));
